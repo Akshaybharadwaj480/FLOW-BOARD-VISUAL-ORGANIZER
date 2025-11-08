@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🌈 Flow Board Visual Organizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root {
+  --pink: #ff4dcd;
+  --aqua: #00f7ff;
+  --dark-bg: linear-gradient(120deg,#1a0025,#3b1d6a);
+  --light-bg: linear-gradient(120deg,#ffffff,#d8e8ff);
+  --text-dark: #111;
+  --text-light: #fff;
+  --shadow-pink: rgba(255,77,205,0.6);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  transition: background 0.8s, color 0.8s;
+  background: var(--dark-bg);
+  color: var(--text-light);
+  overflow-x: hidden;
+}
+
+body.light {
+  background: var(--light-bg);
+  color: var(--text-dark);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle, var(--pink), transparent 60%),
+    radial-gradient(circle, var(--aqua), transparent 60%);
+  background-size: 50% 50%;
+  animation: moveBg 20s infinite linear;
+  z-index: -1;
+  opacity: 0.25;
+}
+
+@keyframes moveBg {
+  0% { transform: translate(0,0) rotate(0deg); }
+  50% { transform: translate(25%,25%) rotate(180deg); }
+  100% { transform: translate(0,0) rotate(360deg); }
+}
+
+.container {
+  padding: 25px 20px;
+  max-width: 960px;
+  margin: auto;
+  text-align: center;
+}
+
+h1 {
+  font-size: 3rem;
+  background: linear-gradient(45deg, var(--pink), var(--aqua));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(255,77,205,0.3);
+  margin-bottom: 25px;
+}
+
+button, input[type="text"], input[type="password"], input[type="datetime-local"] {
+  border-radius: 14px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  padding: 14px 26px;
+  border: none;
+  background: linear-gradient(45deg, var(--pink), var(--aqua));
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 6px 20px var(--shadow-pink);
+  user-select: none;
+  font-size: 1rem;
+}
+
+button:hover, button:focus {
+  box-shadow: 0 0 30px var(--shadow-pink);
+  transform: scale(1.05);
+}
+
+input[type="text"], input[type="password"], input[type="datetime-local"] {
+  font-size: 1.1rem;
+  padding: 12px 16px;
+  border: 1.5px solid #ccc;
+  width: 90%;
+  margin: 10px 0 16px;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="datetime-local"]:focus {
+  border-color: var(--pink);
+  box-shadow: 0 0 10px var(--pink);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  background: rgba(255,255,255,0.25);
+  padding: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.4rem;
+  color: var(--pink);
+  user-select: none;
+  transition: background 0.4s ease;
+  box-shadow: 0 0 12px var(--pink);
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+.card {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(16px);
+  border-radius: 22px;
+  padding: 42px 40px;
+  max-width: 380px;
+  color: white;
+  box-shadow: 0 0 38px rgba(255,77,205,0.15);
+  margin: 80px auto 60px;
+  user-select: none;
+}
+
+body.light .card {
+  background: rgba(255,255,255,0.95);
+  color: var(--text-dark);
+  box-shadow: 0 0 32px rgba(255,77,205,0.3);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 36px;
+  margin-top: 38px;
+}
+
+.column {
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 26px 22px 30px;
+  width: 340px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 30px rgba(0,0,0,0.22);
+  display: flex;
+  flex-direction: column;
+  max-height: 520px;
+  user-select: none;
+}
+
+body.light .column {
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 0 36px rgba(255,77,205,0.25);
+}
+
+.column h2 {
+  background: rgba(0,0,0,0.35);
+  padding: 14px 14px;
+  border-radius: 16px;
+  margin-bottom: 22px;
+  color: white;
+  font-weight: 700;
+  user-select: none;
+  text-align: left;
+}
+
+body.light .column h2 {
+  background: var(--pink);
+  color: white;
+  box-shadow: 0 0 22px var(--pink);
+}
+
+.task {
+  background: linear-gradient(120deg,#ffe6f7,#e0faff);
+  color: #222;
+  padding: 14px 18px;
+  border-radius: 14px;
+  margin: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  user-select: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.task:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 25px var(--aqua);
+}
+
+.task .meta {
+  margin-left: 10px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: crimson;
+  font-size: 1.3rem;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+.delete-btn:hover {
+  color: darkred;
+}
+
+#searchBox {
+  width: 300px;
+  font-size: 1.05rem;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #ccc;
+  user-select: text;
+  box-sizing: border-box;
+}
+
+.tabs {
+  margin-top: 25px;
+  margin-bottom: 18px;
+}
+
+.tab {
+  display: inline-block;
+  padding: 13px 26px;
+  border-radius: 36px;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  cursor: pointer;
+  margin: 0 8px;
+  font-weight: 700;
+  transition: 0.3s;
+  user-select: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.tab.active {
+  background: linear-gradient(45deg, var(--pink), var(--aqua));
+  box-shadow: 0 0 24px var(--aqua);
+}
+
+.tab:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+.progress-page {
+  max-width: 640px;
+  margin: 60px auto 70px;
+  background: rgba(255,255,255,0.16);
+  padding: 32px 32px 34px;
+  border-radius: 24px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 0 28px rgba(255,77,205,0.25);
+  color: white;
+  user-select: none;
+}
+
+body.light .progress-page {
+  background: rgba(255,255,255,0.96);
+  color: var(--text-dark);
+  box-shadow: 0 0 36px rgba(255,77,205,0.35);
+}
+
+canvas {
+  width: 100% !important;
+  height: 370px !important;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.blink {
+  animation: blink 1s infinite;
+}
+
+.popup {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(45deg, var(--pink), var(--aqua));
+  color: #fff;
+  padding: 16px 24px;
+  border-radius: 14px;
+  animation: fadeInOut 5s forwards;
+  font-weight: 700;
+  box-shadow: 0 0 28px var(--pink);
+  user-select: none;
+  z-index: 1000;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(8px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(8px); }
+}
+
+
+.hidden-inline { display: none; }
+.highlight { outline: 2px solid rgba(255,77,205,0.6); border-radius: 10px; }
+</style>
+</head>
+<body>
+<div class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Theme">🌙</div>
+
+<div id="loginPage" class="card">
+  <h2> Flow Board Visual Organizer</h2>
+  <input type="text" id="username" placeholder="Username" autocomplete="username" />
+  <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+  <button onclick="login()">Login</button>
+  <button onclick="showRegister()">Register</button>
+</div>
+
+<div id="registerPage" class="card hidden">
+  <h2>Create Account</h2>
+  <input type="text" id="newUser" placeholder="Username" autocomplete="username" />
+  <input type="password" id="newPass" placeholder="Password" autocomplete="new-password" />
+  <button onclick="register()">Register</button>
+  <button onclick="showLogin()">Back</button>
+</div>
+
+<div id="boardPage" class="hidden container" aria-live="polite">
+  <h1>🌈 FlowBoard Visual Organiser</h1>
+  <div class="tabs" role="tablist">
+    <div class="tab active" data-cat="personal" role="tab" tabindex="0" onclick="switchCategory('personal')">Personal</div>
+    <div class="tab" data-cat="office" role="tab" tabindex="0" onclick="switchCategory('office')">Office</div>
+    <div class="tab" data-cat="others" role="tab" tabindex="0" onclick="switchCategory('others')">Others</div>
+  </div>
+  <input type="text" id="searchBox" placeholder="🔍 Search tasks..." onkeyup="searchTasks()" autocomplete="off" />
+  
+  <div class="board" aria-label="Task board">
+    <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+      <h2>📝 To Do</h2>
+      <div id="todo" aria-live="polite" aria-label="To Do tasks"></div>
+      <input id="todoInput" placeholder="Task name..." aria-label="New To Do task name" />
+      <input type="datetime-local" id="todoDeadline" aria-label="To Do deadline" />
+      <button onclick="addTask('todo')">Add</button>
+    </div>
+
+    <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+      <h2>⚙️ In Progress</h2>
+      <div id="inprogress" aria-live="polite" aria-label="In Progress tasks"></div>
+      <input id="inprogressInput" placeholder="Task name..." aria-label="New In Progress task name" />
+      <input type="datetime-local" id="inprogressDeadline" aria-label="In Progress deadline" />
+      <button onclick="addTask('inprogress')">Add</button>
+    </div>
+
+    <div class="column" ondrop="drop(event)" ondragover="allowDrop(event)">
+      <h2>✅ Done</h2>
+      <div id="done" aria-live="polite" aria-label="Done tasks"></div>
+      <input id="doneInput" placeholder="Task name..." aria-label="New Done task name" />
+      <input type="datetime-local" id="doneDeadline" aria-label="Done deadline" />
+      <button onclick="addTask('done')">Add</button>
+    </div>
+  </div>
+
+  <br />
+  <button onclick="openProgress()" aria-label="View task progress">📊 View Progress</button>
+  <button onclick="logout()" aria-label="Logout">Logout</button>
+</div>
+
+<div id="progressPage" class="hidden progress-page" aria-label="Progress page">
+  <h2>📈 Your Task Progress</h2>
+  <canvas id="progressChart" role="img" aria-label="Task progress chart"></canvas>
+  <br />-
+  <button onclick="showBoard()" aria-label="Back to board">⬅️ Back</button>
+</div>
+
+<div id="popup" class="popup hidden" role="alert" aria-live="assertive"></div>
+
+<script>
+let currentUser = null;
+let currentCategory = "personal";
+let darkTheme = true;
+let tasks = {
+  personal: { todo: [], inprogress: [], done: [] },
+  office: { todo: [], inprogress: [], done: [] },
+  others: { todo: [], inprogress: [], done: [] }
+};
+
+
+function saveData() {
+  if (currentUser) {
+    localStorage.setItem('data_' + currentUser, JSON.stringify(tasks));
+  }
+}
+function loadData() {
+  if (!currentUser) return;
+  let d = localStorage.getItem('data_' + currentUser);
+  if (d) tasks = JSON.parse(d);
+}
+
+
+function showPopup(msg, duration = 3000) {
+  const p = document.getElementById("popup");
+  p.innerText = msg;
+  p.classList.remove("hidden");
+  clearTimeout(p._timeout);
+  p._timeout = setTimeout(() => p.classList.add("hidden"), duration);
+}
+
+function toggleTheme() {
+  darkTheme = !darkTheme;
+  if (darkTheme) {
+    document.body.classList.remove("light");
+    document.querySelector(".theme-toggle").textContent = "🌙";
+  } else {
+    document.body.classList.add("light");
+    document.querySelector(".theme-toggle").textContent = "☀️";
+  }
+}
+
+
+function showRegister() {
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("registerPage").classList.remove("hidden");
+}
+function showLogin() {
+  document.getElementById("registerPage").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
+}
+
+function register() {
+  const u = document.getElementById("newUser").value.trim();
+  const p = document.getElementById("newPass").value.trim();
+  if (!u || !p) {
+    alert("Enter username and password");
+    return;
+  }
+  if (localStorage.getItem("user_" + u)) {
+    alert("Username already exists");
+    return;
+  }
+  localStorage.setItem("user_" + u, p);
+  showPopup("Registered! You can login now.", 2500);
+  showLogin();
+}
+
+function login() {
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value.trim();
+  if (localStorage.getItem("user_" + u) === p) {
+    currentUser = u;
+    
+    if (!localStorage.getItem('data_' + currentUser)) {
+      localStorage.setItem('data_' + currentUser, JSON.stringify(tasks));
+    }
+    loadData();
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("boardPage").classList.remove("hidden");
+    renderTasks();
+    showPopup("Welcome, " + currentUser + "!", 2000);
+  } else {
+    alert("Invalid login");
+  }
+}
+
+function logout() {
+  saveData();
+  location.reload();
+}
+
+
+function addTask(col) {
+  const input = document.getElementById(col + "Input");
+  const deadlineInput = document.getElementById(col + "Deadline");
+  const val = input.value.trim();
+  const deadline = deadlineInput ? deadlineInput.value : "";
+  if (!val) {
+    showPopup("⚠️ Please enter a task name!");
+    return;
+  }
+  const task = { text: val, deadline: deadline || null, createdAt: new Date().toISOString() };
+  if (!tasks[currentCategory][col]) tasks[currentCategory][col] = [];
+  tasks[currentCategory][col].push(task);
+  saveData();
+  renderTasks();
+  input.value = "";
+  if (deadlineInput) deadlineInput.value = "";
+  showPopup("✅ Task added successfully!");
+}
+
+function renderTasks() {
+  ["todo", "inprogress", "done"].forEach(c => {
+    const container = document.getElementById(c);
+    container.innerHTML = "";
+    if (!tasks[currentCategory][c]) tasks[currentCategory][c] = [];
+    tasks[currentCategory][c].forEach((t, i) => {
+      const d = document.createElement("div");
+      d.className = "task";
+      d.draggable = true;
+      
+      d.dataset.col = c;
+      d.dataset.index = i;
+      d.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({ col: c, idx: i }));
+      });
+
+      
+      const left = document.createElement("div");
+      left.style.display = "flex";
+      left.style.alignItems = "center";
+      const title = document.createElement("div");
+      title.textContent = t.text;
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      if (t.deadline) {
+        
+        const dt = new Date(t.deadline);
+        if (!isNaN(dt)) meta.textContent = ' 🕒 ' + dt.toLocaleString();
+      }
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const del = document.createElement("button");
+      del.className = "delete-btn";
+      del.setAttribute("aria-label", "Delete task");
+      del.innerHTML = "&times;";
+      del.onclick = () => delTask(c, i);
+
+      d.appendChild(left);
+      d.appendChild(del);
+      container.appendChild(d);
+    });
+  });
+
+  
+  searchTasks();
+}
+
+function delTask(col, i) {
+  if (!tasks[currentCategory][col] || !tasks[currentCategory][col][i]) return;
+  tasks[currentCategory][col].splice(i, 1);
+  saveData();
+  renderTasks();
+  showPopup("🗑 Task deleted!");
+}
+
+
+function allowDrop(e) {
+  e.preventDefault();
+}
+function drop(e) {
+  e.preventDefault();
+  try {
+    const payload = e.dataTransfer.getData("text/plain");
+    if (!payload) return;
+    const { col: oldCol, idx } = JSON.parse(payload);
+    const index = Number(idx);
+    if (!Number.isFinite(index)) return;
+
+    const columnEl = e.target.closest(".column");
+    if (!columnEl) return;
+    const targetDiv = columnEl.querySelector("div[id]");
+    if (!targetDiv) return;
+    const newCol = targetDiv.id;
+
+    if (!tasks[currentCategory][oldCol] || !tasks[currentCategory][oldCol][index]) return;
+    const taskObj = tasks[currentCategory][oldCol].splice(index, 1)[0];
+    tasks[currentCategory][newCol].push(taskObj);
+    saveData();
+    renderTasks();
+  } catch (err) {
+    console.error("drop error", err);
+  }
+}
+
+function searchTasks() {
+  const q = document.getElementById("searchBox").value.toLowerCase();
+  let found = false;
+  document.querySelectorAll(".task").forEach(t => {
+    const text = t.innerText.toLowerCase();
+    if (q && text.includes(q)) {
+      t.style.display = "flex";
+      t.classList.add("highlight");
+      t.classList.add("blink");
+      found = true;
+    } else {
+      t.style.display = q ? "none" : "flex";
+      t.classList.remove("highlight");
+      t.classList.remove("blink");
+    }
+  });
+  if (q && found) showPopup("🔍 Task found!");
+}
+
+function switchCategory(cat) {
+  currentCategory = cat;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  const tab = Array.from(document.querySelectorAll(".tab")).find(x => x.dataset.cat === cat);
+  if (tab) tab.classList.add("active");
+  if (!tasks[currentCategory]) tasks[currentCategory] = { todo: [], inprogress: [], done: [] };
+  renderTasks();
+}
+
+function checkDeadlines() {
+  const now = new Date();
+  Object.keys(tasks).forEach(cat => {
+    ["todo", "inprogress"].forEach(col => {
+      tasks[cat][col].forEach(t => {
+        if (t.deadline) {
+          const dt = new Date(t.deadline);
+          if (!isNaN(dt) && dt <= now) {
+            showPopup(`⏰ Deadline reached for: "${t.text}" (${cat})`, 4000);
+            
+            t.deadline = null;
+          }
+        }
+      });
+    });
+  });
+  saveData();
+}
+
+setInterval(checkDeadlines, 60000);
+
+let chartInstance = null;
+function renderChart() {
+  const todo = tasks[currentCategory].todo.length;
+  const prog = tasks[currentCategory].inprogress.length;
+  const done = tasks[currentCategory].done.length;
+  const ctx = document.getElementById("progressChart").getContext("2d");
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["To Do", "In Progress", "Done"],
+      datasets: [{
+        data: [todo, prog, done],
+        
+        backgroundColor: ["#ff4dcd", "#00f7ff", "#7fff7f"],
+        borderColor: "#fff",
+        borderWidth: 1
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, precision: 0 } },
+      animation: { duration: 800, easing: "easeInOutCubic" }
+    }
+  });
+}
+
+function openProgress() {
+  document.getElementById("boardPage").classList.add("hidden");
+  document.getElementById("progressPage").classList.remove("hidden");
+  renderChart();
+}
+function showBoard() {
+  document.getElementById("progressPage").classList.add("hidden");
+  document.getElementById("boardPage").classList.remove("hidden");
+}
+
+(function init() {
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        switchCategory(tab.dataset.cat);
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
